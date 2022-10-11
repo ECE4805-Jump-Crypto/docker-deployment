@@ -1,10 +1,17 @@
 //if needed to store information
 class Static {
   static counter = 0;
+  static Lat ='';
+  static Lng=''; 
 }
+
+const nodeForm = document.getElementById('Hotspots-form');
+const nodeGain = document.getElementById('Hotspots-gain');
+const nodeElevation = document.getElementById('Hotspots-elevation');
 
 mapboxgl.accessToken = 'pk.eyJ1Ijoic2hhcGVpMzZlIiwiYSI6ImNsN3VrZjdxajAya2ozdW1zZ3cwaTl1MXUifQ.7dWrn7Jx3zvbocP2BmKGMQ';
 var Coord = document.getElementById('coordinates');
+var HNT = document.getElementById('price');
 var map = new mapboxgl.Map({
   container: "map",
   style: 'mapbox://styles/shapei36e/cl822g760004a15sey3q5ovoo',
@@ -16,7 +23,18 @@ var marker = new mapboxgl.Marker();
 var nodes = new mapboxgl.Marker();
 
 
+// Fetch HNT price from  API
+async function getHNTPrice(){
+  var hntRes = await fetch('https://api.helium.io/v1/oracle/prices/current');
+  var hntData = await hntRes.json();
 
+  var hntPrice = hntData.data.price; 
+  hntPrice = hntPrice/100000000; 
+  hntPrice = hntPrice.toFixed(2); 
+  console.log(hntPrice); 
+  HNT.innerHTML = `HNT Price:   $${hntPrice}`
+  
+}
 
 // Add marker(added node) by click 
 async function add_marker(event) {
@@ -24,18 +42,14 @@ async function add_marker(event) {
   console.log('Lng:', coordinates.lng, 'Lat:', coordinates.lat);
   var Lat = coordinates.lat.toString();
   var Lng = coordinates.lng.toString();
-  Coord.innerHTML= `Longitude: ${coordinates.lng}<br />Latitude: ${coordinates.lat}`;
+  Static.Lat = coordinates.lat;
+  Static.Lng = coordinates.lng; 
+  Coord.innerHTML= `Longitude: ${coordinates.lng}n<br />Latitude: ${coordinates.lat}`;
 
 
   // Update API link
   originalUrl = 'https://api.helium.io/v1/hotspots/location/distance?lat=' + Lat + '&lon=' + Lng + '&distance=2000';
   console.log(originalUrl);
-
-
-
-
-
-
 
 
   // Fetch API and get nodes data
@@ -247,3 +261,81 @@ map.on('click', (event) => {
     map.removeSource('places');
   }
 });
+
+// Add Node
+async function addNodes(e){
+  e.preventDefault();
+  //----------------------------------------------------------
+  // *****Need Debugging here:
+  // null input won't generate error right now
+  // still shows "Node added"
+  //----------------------------------------------------------
+  if(Static.Lat === ''||Static.Lng === ''){
+      alert('Please click to choose a location on the map');
+      return; 
+  }
+  if(nodeGain.value ===''||nodeElevation.value===''){
+    alert('Please fill in the fields');
+    return; 
+  }
+  const sendBody = {
+      // HotspotsId: nodeName.value,
+      // address: nodeAddress.value,
+      Lat: Static.Lat,
+      Lng: Static.Lng,
+      gain: nodeGain.value,
+      elevation: nodeElevation.value,
+  }
+  Static.Lat =='';
+  Static.Lng ==''; 
+
+  try {
+      const res = await fetch('/api/v1/hotspots',{
+          method: 'POST',
+          headers: {
+              'Content-Type':'application/json'
+          },
+          body: JSON.stringify(sendBody)
+      });
+      if(res.status === 400){
+          throw Error('Nodes already exsts!')
+
+      }
+      alert('Node added!');
+      window.location.href = '/index.html';
+      
+  } catch (error) {
+      alert(error);
+      return;
+  }
+}
+
+
+
+nodeForm.addEventListener('submit', addNodes);
+
+
+getHNTPrice(); 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
