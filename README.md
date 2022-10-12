@@ -33,5 +33,13 @@ API that stores the added noeds: http://localhost:3000/api/v1/hotspots
 
 ## MongoDB Atlas 
 Account: 13982106768@163.com
+
 Password: Peiyqbb0504
+
 Click Browse collection to see the added nodes information 
+
+Click Connect, Connect your application or use following lines to connect with the dataset
+```
+mongodb+srv://<username>:<password>@cluster0.mvy3paz.mongodb.net/?retryWrites=true&w=majority
+```
+where username is Shapei and password is shapei
