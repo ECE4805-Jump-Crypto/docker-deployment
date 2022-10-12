@@ -27,3 +27,11 @@ Run the following command to stop the application from running
 ```
 $ docker-compose stop
 ```
+
+## API & MongoDB Atlas Account information
+API that stores the added noeds: http://localhost:3000/api/v1/hotspots
+
+## MongoDB Atlas 
+Account: 13982106768@163.com
+Password: Peiyqbb0504
+Click Browse collection to see the added nodes information 
