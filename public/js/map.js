@@ -32,7 +32,7 @@ async function getHNTPrice(){
   hntPrice = hntPrice/100000000; 
   hntPrice = hntPrice.toFixed(2); 
   console.log(hntPrice); 
-  HNT.innerHTML = `HNT Price:   $${hntPrice}`
+  HNT.innerHTML = `Oracle Price:   $${hntPrice}`
   
 }
 
