@@ -3,11 +3,20 @@ class Static {
   static counter = 0;
   static Lat ='';
   static Lng=''; 
+  static Gain= '';
+  static Elevation='';
 }
+
+var storage = window.sessionStorage; 
+//storage.setItem('Counter','0'); 
 
 const nodeForm = document.getElementById('Hotspots-form');
 const nodeGain = document.getElementById('Hotspots-gain');
 const nodeElevation = document.getElementById('Hotspots-elevation');
+
+
+
+
 
 mapboxgl.accessToken = 'pk.eyJ1Ijoic2hhcGVpMzZlIiwiYSI6ImNsN3VrZjdxajAya2ozdW1zZ3cwaTl1MXUifQ.7dWrn7Jx3zvbocP2BmKGMQ';
 var Coord = document.getElementById('coordinates');
@@ -32,7 +41,32 @@ async function getHNTPrice(){
   hntPrice = hntPrice/100000000; 
   hntPrice = hntPrice.toFixed(2); 
   console.log(hntPrice); 
-  HNT.innerHTML = `Oracle Price:   $${hntPrice}`
+  HNT.innerHTML = `HNT Price:   $${hntPrice}`
+  
+}
+
+// Get calculated prediction from backend
+// async function getPrediction(){
+//   var pdRes = await fetch('https://api.helium.io/v1/oracle/prices/current');
+//   var pdData = await pdRes.json();
+
+//   var hntPrice = pdData.data.price; 
+//   hntPrice = hntPrice/100000000; 
+//   hntPrice = hntPrice.toFixed(2); 
+//   console.log(hntPrice); 
+//   HNT.innerHTML = `HNT Price:   $${hntPrice}`
+  
+// }
+async function getNodeinfor(){
+  var ndRes = await fetch('/api/v1/hotspots');
+  var ndData = await ndRes.json();
+  var nd = ndData.data;
+  var Lat = nd[nd.length-1].Lat;
+  var Lng = nd[nd.length-1].Lng;
+  var Gain = nd[nd.length-1].gain;
+  var Elevation = nd[nd.length-1].elevation;
+  console.log(Lat); 
+  node.innerHTML = `Node to be test: <br />Lat:${Lat},<br /> Lng:${Lng}, <br />Gain:${Gain}, <br />Elevation:${Elevation}`
   
 }
 
@@ -44,7 +78,8 @@ async function add_marker(event) {
   var Lng = coordinates.lng.toString();
   Static.Lat = coordinates.lat;
   Static.Lng = coordinates.lng; 
-  Coord.innerHTML= `Longitude: ${coordinates.lng}n<br />Latitude: ${coordinates.lat}`;
+  console.log('sLng:', Static.Lng, 'sLat:', Static.Lat);
+  Coord.innerHTML= `Longitude: ${coordinates.lng}<br />Latitude: ${coordinates.lat}`;
 
 
   // Update API link
@@ -212,6 +247,7 @@ function loadMap(hotspots) {
     }
   });
   Static.counter++;
+  console.log(Static.counter);
   //}
   //);
 
@@ -262,29 +298,84 @@ map.on('click', (event) => {
   }
 });
 
-// Add Node
+
+// cookies    
+// function setCookie(name, value, seconds) {
+//   seconds = seconds || 0;      
+//   var expires = "";
+//   if (seconds != 0) {         
+//     var date = new Date();
+//     date.setTime(date.getTime() + (seconds * 1000));
+//     expires = "expires=" + date.toGMTString();
+//   }
+//   document.cookie = name + "=" + escape(value) + expires + "; path=/"; 
+// }  
+//  //get cookie    
+//  function getCookie(name) {
+//   var nameEQ = name + "=";
+//   var ca = document.cookie.split(';');     
+//   for (var i = 0; i < ca.length; i++) {
+//     var c = ca[i];     
+//     while (c.charAt(0) == ' ') {    
+//       c = c.substring(1, c.length);    
+//     }
+//     if (c.indexOf(nameEQ) == 0) {    
+//       return unescape(c.substring(nameEQ.length, c.length)); 
+//     }
+//   }
+//   return false;
+// }
+
+
+
+
+
+
+
+
+// Add node
 async function addNodes(e){
   e.preventDefault();
-  //----------------------------------------------------------
-  // *****Need Debugging here:
-  // null input won't generate error right now
-  // still shows "Node added"
-  //----------------------------------------------------------
+  
   if(Static.Lat === ''||Static.Lng === ''){
       alert('Please click to choose a location on the map');
       return; 
   }
-  if(nodeGain.value ===''||nodeElevation.value===''){
-    alert('Please fill in the fields');
-    return; 
+  console.log(storage.getItem('Gain'));
+    
+  // storage.setItem('Counter','1');
+  // storage.setItem('Gain',nodeGain.value);
+  // storage.setItem('Elevation',nodeElevation.value);
+
+  
+  // if(nodeGain.value != '' && nodeElevation.value !=''){
+  //     storage.setItem('Gain',nodeGain.value);
+  //     storage.setItem('Elevation',nodeElevation.value);
+  // }
+  
+  if(storage.getItem('Gain') ===null||storage.getItem('Elevation')===null){
+    if (nodeGain.value === '' ||nodeElevation.value ===''){
+      alert('Please fill in the fields');
+      return; 
+    }
+    else{
+      console.log(typeof(nodeElevation.value));
+      storage.setItem('Gain',nodeGain.value);
+      storage.setItem('Elevation',nodeElevation.value);
+      // setCookie('Gain','1');
+      // setCookie('Elevation','2');
+
+      console.log(storage.getItem('Gain'));
+    }
   }
+
   const sendBody = {
       // HotspotsId: nodeName.value,
       // address: nodeAddress.value,
       Lat: Static.Lat,
       Lng: Static.Lng,
-      gain: nodeGain.value,
-      elevation: nodeElevation.value,
+      gain: storage.getItem('Gain'),
+      elevation: storage.getItem('Elevation'),
   }
   Static.Lat =='';
   Static.Lng ==''; 
@@ -298,7 +389,7 @@ async function addNodes(e){
           body: JSON.stringify(sendBody)
       });
       if(res.status === 400){
-          throw Error('Nodes already exsts!')
+          throw Error('Nodes already exists!')
 
       }
       alert('Node added!');
@@ -316,7 +407,7 @@ nodeForm.addEventListener('submit', addNodes);
 
 
 getHNTPrice(); 
-
+getNodeinfor();
 
 
 
