@@ -65,8 +65,19 @@ async function getNodeinfor(){
   var Lng = nd[nd.length-1].Lng;
   var Gain = nd[nd.length-1].gain;
   var Elevation = nd[nd.length-1].elevation;
-  console.log(Lat); 
+  console.log(storage); 
   node.innerHTML = `Node to be test: <br />Lat:${Lat},<br /> Lng:${Lng}, <br />Gain:${Gain}, <br />Elevation:${Elevation}`
+  
+}
+
+// Get prediction
+async function getPrediction(){
+  var pdRes = await fetch('http://127.0.0.1:5000/api/v1/prediction');
+  var pdData = await pdRes.json();
+
+  var pdPD = pdData[0].Prediction; 
+  console.log(pdData); 
+  predict.innerHTML = `Prediction:   ${pdPD}`
   
 }
 
@@ -353,10 +364,26 @@ async function addNodes(e){
   //     storage.setItem('Elevation',nodeElevation.value);
   // }
   
-  if(storage.getItem('Gain') ===null||storage.getItem('Elevation')===null){
     if (nodeGain.value === '' ||nodeElevation.value ===''){
+      if(storage.getItem('Gain') ===null||storage.getItem('Elevation')===null){
+      
       alert('Please fill in the fields');
-      return; 
+      return;
+      }   else{
+        console.log(typeof(nodeElevation.value));
+        // storage.setItem('Gain',nodeGain.value);
+        // storage.setItem('Elevation',nodeElevation.value);
+        // setCookie('Gain','1');
+        // setCookie('Elevation','2');
+        Static.Elevation = storage.getItem('Elevation');
+        Static.Gain = storage.getItem('Gain');
+        // storage.removeItem('Gain');
+        // storage.removeItem('Elevation');
+  
+  
+        console.log(Static);
+      }
+    
     }
     else{
       console.log(typeof(nodeElevation.value));
@@ -364,23 +391,30 @@ async function addNodes(e){
       storage.setItem('Elevation',nodeElevation.value);
       // setCookie('Gain','1');
       // setCookie('Elevation','2');
+      Static.Elevation = storage.getItem('Elevation');
+      Static.Gain = storage.getItem('Gain');
+      // storage.removeItem('Gain');
+      // storage.removeItem('Elevation');
 
-      console.log(storage.getItem('Gain'));
+
+      console.log(Static);
     }
-  }
+    
+
 
   const sendBody = {
       // HotspotsId: nodeName.value,
       // address: nodeAddress.value,
       Lat: Static.Lat,
       Lng: Static.Lng,
-      gain: storage.getItem('Gain'),
-      elevation: storage.getItem('Elevation'),
+      gain:Static.Gain,
+      elevation:Static.Elevation,
   }
   Static.Lat =='';
   Static.Lng ==''; 
 
   try {
+      console.log(JSON.stringify(sendBody))
       const res = await fetch('/api/v1/hotspots',{
           method: 'POST',
           headers: {
@@ -408,6 +442,7 @@ nodeForm.addEventListener('submit', addNodes);
 
 getHNTPrice(); 
 getNodeinfor();
+getPrediction()
 
 
 
